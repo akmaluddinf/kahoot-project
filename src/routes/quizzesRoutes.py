@@ -1,4 +1,4 @@
-from flask import Flask, request, json, jsonify
+from flask import Flask, request, json, jsonify, g
 import os
 
 from . import router, quizzesFileLocation, questionsFileLocation
@@ -7,8 +7,10 @@ from ..utils.authorization import verifyLogin
 
 # bikin kuis baru
 @router.route('/quizzes', methods=['POST'])
+# @verifyLogin
 def createQuiz():
     body = request.json
+    # print("usernamenya adalah", g.username)
 
     quizData = {
         "total-quiz-available": 0,
@@ -16,16 +18,12 @@ def createQuiz():
     }
 
     if os.path.exists(quizzesFileLocation):
-        quizzesFile = open(quizzesFileLocation, 'r')
-        quizData = json.load(quizzesFile)
-    else:
-        quizzesFile = open(quizzesFileLocation, 'x')
+        quizData = readFile(quizzesFileLocation)
 
     quizData["total-quiz-available"] += 1
     quizData["quizzes"].append(body)
 
-    quizzesFile = open(quizzesFileLocation, 'w')
-    quizzesFile.write(str(json.dumps(quizData)))
+    writeFile(quizzesFileLocation, quizData)
 
     return jsonify(quizData)
 
@@ -33,8 +31,7 @@ def createQuiz():
 @router.route('/quizzes/<quizId>') #kalau gaada methodnya itu defaulnya ["GET"]
 def getQuiz(quizId):
     # nyari quiznya
-    quizzesFile = open(quizzesFileLocation)
-    quizzesData = json.load(quizzesFile) #kalo load itu dari file
+    quizzesData = readFile(quizzesFileLocation)
 
     for quiz in quizzesData["quizzes"]:
         if quiz["quiz-id"] == int(quizId):
@@ -42,8 +39,7 @@ def getQuiz(quizId):
             break
 
     # nyari soalnya
-    questionsFile = open(questionsFileLocation)
-    questionsData = json.load(questionsFile)
+    questionsData = readFile(questionsFileLocation)
 
     for question in questionsData["questions"]:
         # question = json.loads(question)
@@ -62,9 +58,7 @@ def updateDeleteQuiz(quizId):
 
 def deleteQuiz(quizId):
     
-    # nyari quiznya
-    quizzesFile = open(quizzesFileLocation)
-    quizzesData = json.load(quizzesFile) 
+    quizzesData = readFile(quizzesFileLocation)
 
     for i in range(len(quizzesData["quizzes"])):
         if quizzesData["quizzes"][i]["quiz-id"] == int(quizId):
@@ -73,16 +67,14 @@ def deleteQuiz(quizId):
             break
 
 
-    with open(quizzesFileLocation, 'w') as quizzesFile:
-        quizzesFile.write(str(json.dumps(quizzesData)))
+    writeFile(questionsFileLocation, quizzesData)
 
     return jsonify(quizzesData)
 
 def updateQuiz(quizId):
     body = request.json
     
-    quizzesFile = open(quizzesFileLocation)
-    quizzesData = json.load(quizzesFile) 
+    quizzesData = readFile(quizzesFileLocation)
 
     for i in range(len(quizzesData["quizzes"])):
         if quizzesData["quizzes"][i]["quiz-id"] == int(quizId):
@@ -90,7 +82,6 @@ def updateQuiz(quizId):
             quizzesData["quizzes"][i]["quiz-name"] = body["quiz-name"]
             break
 
-    with open(quizzesFileLocation, 'w') as quizzesFile:
-        quizzesFile.write(str(json.dumps(quizzesData)))
+    writeFile(questionsFileLocation, quizzesData)
 
     return jsonify(quizzesData)

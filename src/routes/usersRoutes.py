@@ -8,60 +8,42 @@ from ..utils.file import readFile, writeFile
 from ..utils.authorization import generateToken
 
 
-@router.route('/alaala')
-def alaala():
-    return "sampe"
-
 
 # Register user
-@router.route('/register', methods=['POST'])
+@router.route('/users', methods=['POST'])
 def register():
     print(os.getenv("API_KEY"))
     body = request.json
 
-    if body["todo"] == "encrypt":
-        body["password"] = encrypt(body["password"])
-    elif body["todo"] == "decrypt":
-        body["password"] == decrypt(body["password"])
+    body["password"] = encrypt(body["password"])
 
     userData = {
         "userList": []
     }
 
     if os.path.exists(usersFileLocation):
-        userFile = open(usersFileLocation, 'r')
-        userData = json.load(userFile)
-    else:
-        userFile = open(usersFileLocation, 'x')
+        userData = readFile(usersFileLocation)
 
     userData["userList"].append(body)
 
-    userFile = open(usersFileLocation, 'w')
-    userFile.write(str(json.dumps(userData)))
+    writeFile(usersFileLocation, userData)
 
     return jsonify(userData)
 
 
 # Login user
-@router.route('/login', methods=["POST"])
+@router.route('/users/login', methods=["POST"])
 def login():
     body = request.json
 
-    if body["todo"] == "encrypt":
-        body["password"] = encrypt(body["password"])
-    elif body["todo"] == "decrypt":
-        body["password"] == decrypt(body["password"])
-
-    # buka file yang udah register
-    userFile = open(usersFileLocation)
-    userData = json.load(userFile)
+    userData = readFile(usersFileLocation)
 
     result = ""
     # cari user yang udah register 
     for i in range(len(userData["userList"])):
         registeredUser = userData["userList"][i]
         if registeredUser["username"] == body["username"]:
-            if registeredUser["password"] == body["password"]:
+            if decrypt(registeredUser["password"]) == body["password"]:
                 result = "Selamat anda berhasil login"
                 body["token"] = generateToken(body["username"])
                 break

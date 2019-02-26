@@ -8,10 +8,10 @@ def encode(data):
         "iat": datetime.utcnow()
     }
 
-    encode = jwt.encode(payload, "kucing-merah", algorithm="HS256").decode('utf-8')
-    return encode
+    encoded = jwt.encode(payload, "kucing-merah", algorithm="HS256").decode('utf-8')
+    return encoded
 
 
-def decode():
-    decode = jwt.decode("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRhIjoibWFrZXJzIn0.a6VqF1oQpUOZjU5U7diD9FvcStirR2A08STBsTBNvcY", "kucing-merah", algorithms=["HS256"])
-    return str(decode)  
+def decode(data):
+    decoded = jwt.decode(data, "kucing-merah", algorithms=["HS256"])
+    return decoded  

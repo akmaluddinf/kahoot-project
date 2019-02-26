@@ -1,8 +1,10 @@
-from flask import request
+from flask import request, g
 from functools import wraps
 
-from .crypt import encrypt
-from .token import encode
+from .crypt import encrypt, decrypt
+from .token import encode, decode
+
+import jwt
 
 def generateToken(data):
     data = encrypt(data)
@@ -11,15 +13,14 @@ def generateToken(data):
     return token
 
 def verifyLogin(f):
-#     @wraps(f)
-#     def decoratedFunction(*args, **kwargs):
+    @wraps(f)
+    def decoratedFunction(*args, **kwargs):
         
-#         token = request.headers["Authorization"]
-#         data = decode(token)
-#         username = decrypt(data["data"])
+        token = request.headers["Authorization"][7:]
+        
+        data = decode(token)
+        username = decrypt(data["data"])
+        g.username = username
 
-#         g.username = username
-
-#         print("lewat decorator")
-#         return f(*args, **kwargs)
+        return f(*args, **kwargs)
     return decoratedFunction

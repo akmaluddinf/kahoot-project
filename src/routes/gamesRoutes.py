@@ -3,6 +3,7 @@ from random import randint
 import os
 
 from . import router, quizzesFileLocation, gamesFileLocation, questionsFileLocation
+from ..utils.file import readFile, writeFile
 
 # bikin game baru
 @router.route('/game', methods=["POST"])
@@ -10,8 +11,9 @@ def createGame():
     body = request.json
 
     # dapetin info quiz
-    quizzesFile = open(quizzesFileLocation)
-    quizzesData = json.load(quizzesFile)
+    # quizzesFile = open(quizzesFileLocation)
+    # quizzesData = json.load(quizzesFile)
+    quizzesData = readFile(quizzesFileLocation)
 
     for quiz in quizzesData["quizzes"]:
         # quiz = json.loads(quiz)
@@ -31,14 +33,11 @@ def createGame():
 
     # simpen data game nya
     if os.path.exists(gamesFileLocation):
-        gamesFile = open(gamesFileLocation, 'r')
-        gamesData = json.load(gamesFile)
-    else:
-        gamesFile = open(gamesFileLocation, 'x')
+        gamesData = readFile(gamesFileLocation)
 
-    with open(gamesFileLocation, 'w') as gamesFile:
-        gamesData["game-list"].append(gameInfo)
-        gamesFile.write(str(json.dumps(gamesData)))
+    gamesData["game-list"].append(gameInfo)
+
+    writeFile(gamesFileLocation, gamesData)
 
     return jsonify(gameInfo)
 
@@ -48,8 +47,7 @@ def joinGame():
     body = request.json
 
     # open game data information
-    gamesFile = open(gamesFileLocation)
-    gamesData = json.load(gamesFile)
+    gamesData = readFile(gamesFileLocation)
 
     position = 0
     for i in range(len(gamesData["game-list"])):
@@ -67,21 +65,11 @@ def joinGame():
                 break
             # TODO: error kalau usernya udah dipake
 
-    with open(gamesFileLocation, 'w') as gamesFile:
-        gamesData["game-list"][position] = gameInfo
-        gamesFile.write(str(json.dumps(gamesData)))
+    gamesData["game-list"][position] = gameInfo
 
-    return jsonify(request.json)
+    writeFile(gamesFileLocation, gamesData)
 
-
-# 
-# 1. harus ada soalnya
-# 2. ada pilihan jawabannya
-# 3. identitas soalnya jelas
-# 4. yang jawabnya juga tau siapa
-# 5. si jawabannya
-# 6. pin game nya
-#
+    return jsonify(gameInfo)
 
 @router.route('/game/answer', methods=["POST"])
 def submitAnswer():
@@ -89,8 +77,7 @@ def submitAnswer():
     body = request.json
 
     # buka file question
-    questionsFile = open(questionsFileLocation)
-    questionsData = json.load(questionsFile)
+    questionsData = readFile(questionsFileLocation)
 
     for question in questionsData["questions"]:
         # question = json.loads(question)
@@ -101,8 +88,7 @@ def submitAnswer():
 
 
     # TODO : update skor/Leaderboard
-    gamesFile = open(gamesFileLocation)
-    gamesData = json.load(gamesFile)
+    gamesData = readFile(gamesFileLocation)
 
     gamePosition = 0
     for i in range(len(gamesData["game-list"])):
@@ -127,10 +113,9 @@ def submitAnswer():
                 gamePosition = i
                 break
 
-    with open(gamesFileLocation, 'w') as gamesFile:
-        gamesData["game-list"][gamePosition] = gameInfo
-        gamesFile.write(str(json.dumps(gamesData)))
-  
+    gamesData["game-list"][gamePosition] = gameInfo
+
+    writeFile(gamesFileLocation, gamesData)
 
     return jsonify(request.json)
 
@@ -138,8 +123,7 @@ def submitAnswer():
 def getLeaderboard():
     body = request.json
 
-    gamesFile = open(gamesFileLocation)
-    gamesData = json.load(gamesFile)
+    gamesData = readFile(gamesFileLocation)
 
     for game in gamesData["game-list"]:
         if game["game-pin"] == body["game-pin"]:

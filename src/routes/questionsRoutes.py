@@ -14,16 +14,11 @@ def createQuestion():
     }
 
     if os.path.exists(questionsFileLocation):
-        questionFile = open(questionsFileLocation, 'r')
-        print("File ada")
-        questionData = json.load(questionFile)
-    else:
-        questionFile = open(questionsFileLocation, 'x')
-        print("file ga ada") 
-
-    questionFile = open(questionsFileLocation, 'w')
+        questionData = readFile(questionsFileLocation)
+    
     questionData["questions"].append(body)
-    questionFile.write(str(json.dumps(questionData)))
+
+    writeFile(questionsFileLocation, questionData)
 
     return jsonify(questionData)
 
@@ -47,9 +42,7 @@ def updateDeleteQuestion(quizId, questionNumber):
 
 def deleteQuestion(quizId, questionNumber):
     
-    # nyari quiznya
-    questionFile = open('./question-file.json')
-    questionData = json.load(questionFile) 
+    questionData = readFile(questionsFileLocation)
 
     for i in range(len(questionData["questions"])):
         if questionData["questions"][i]["question-number"] == int(questionNumber):
@@ -57,19 +50,15 @@ def deleteQuestion(quizId, questionNumber):
                 del questionData["questions"][i]
     
             break
-
-
-    with open('./question-file.json', 'w') as questionFile:
-        questionFile.write(str(json.dumps(questionData)))
-
+            
+    writeFile(questionsFileLocation, questionData)
+    
     return jsonify(questionData)
 
 def updateQuestion(quizId, questionNumber):
     body = request.json
 
-    # nyari quiznya
-    questionFile = open('./question-file.json')
-    questionData = json.load(questionFile) 
+    questionData = readFile(questionsFileLocation)
 
     for i in range(len(questionData["questions"])):
         if questionData["questions"][i]["question-number"] == int(questionNumber):
@@ -84,7 +73,6 @@ def updateQuestion(quizId, questionNumber):
                 
             break
 
-    with open('./question-file.json', 'w') as questionFile:
-        questionFile.write(str(json.dumps(questionData)))
+    writeFile(questionsFileLocation, questionData)
 
     return jsonify(questionData)
